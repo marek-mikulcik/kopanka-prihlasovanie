@@ -20,4 +20,6 @@ public class Udalost : ITableEntity
 
     [IgnoreDataMember]
     public bool Prihlaseny {get; set; } = false;
+    public int PocetCakaren { get; set; }
+    public string RegistracieCakaren { get; set; }
 }

@@ -12,6 +12,6 @@ public class Registracia
     public string Telefon { get; set; }
     [Required]
     public int pocet { get; set; } = 1;
-    public string RowKey { get; set; }
-    
+    public string RowKey { get; set; }   
+    public DateTime Datum { get; set; }
 }

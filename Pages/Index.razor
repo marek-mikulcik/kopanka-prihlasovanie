@@ -5,6 +5,7 @@
 @using Marek.Prihlasenie.Data
 @using System.Text.Json
 @inject UdalostService UdalostService
+@inject DialogService DialogService
 
 @if (udalosti.Length == 0)
 {
@@ -19,40 +20,19 @@
         </div>
         <div class="row">
             <div class="col-9">
-                <p >Počet voľných miest: <b class="fs-2">@(udalost.max - udalost.pocet)</b></p>
+                <p>Počet voľných miest: <b class="fs-2">@(udalost.max - udalost.pocet)</b></p>
             </div>
-            @if (!udalost.Expanded)
+            @if (!udalost.Prihlaseny)
             {
-                @if (!udalost.Prihlaseny)
-                {
-                    <button class="btn btn-primary col-2" @onclick="() => Expand(udalost)">Prihlásiť</button>
-                }
-                else
-                {
-                    <button class="btn btn-disabled col-2">Prihlásený</button>
-                }
+                <button class="btn btn-primary col-2" @onclick="() => ShowPrihlasDialog(udalost)">
+                    @(udalost.pocet < udalost.max ? "Prihlásiť" : "Prihlásiť do čakárne")
+                </button>
             }
             else
             {
-                <div class="card col-6">
-                    <EditForm Model="registracia" OnValidSubmit="HandleValidSubmit">
-                        <div class="card-body">
-                            <DataAnnotationsValidator />
-                            <label for="meno">Meno a Priezvisko</label>
-                            <InputText id="meno" @bind-Value="registracia.Meno" class="form-control" />
-                            <label for="telefon">Telefón</label>
-                            <InputText id="telefon" @bind-Value="registracia.Telefon" class="form-control" />
-                            <label for="pocet">Počet miest</label>
-                            <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control"
-                        max="@(udalost.max - udalost.pocet)" />
-                        </div>
-                        <div class="card-body text-right">
-                            <button type="button" class="btn btn-warning" @onclick="() => Expand(udalost)">Zrušiť</button>
-                            <button type="submit" class="btn btn-primary">Prihlásiť</button>
-                        </div>
-                    </EditForm>
-                </div>
+                <button class="btn btn-disabled col-2">Prihlásený</button>
             }
+
         </div>
     </div>
 }
@@ -75,16 +55,54 @@
     private async void HandleValidSubmit()
     {
         var udalost = udalosti.FirstOrDefault(u => u.RowKey == registracia.RowKey);
-        udalost.pocet += registracia.pocet;
         var regi = new List<Registracia>();
-        if (!string.IsNullOrEmpty(udalost.registracie))
-            regi = JsonSerializer.Deserialize<List<Registracia>>(udalost.registracie);
-        regi.Add(registracia);
-        udalost.registracie = JsonSerializer.Serialize(regi);
+        if (udalost.pocet < udalost.max)
+        {
+            udalost.pocet += registracia.pocet;
+            if (!string.IsNullOrEmpty(udalost.registracie))
+                regi = JsonSerializer.Deserialize<List<Registracia>>(udalost.registracie);
+            regi.Add(registracia);
+            udalost.registracie = JsonSerializer.Serialize(regi);
+        }
+        else
+        {
+            udalost.PocetCakaren += registracia.pocet;
+            if (!string.IsNullOrEmpty(udalost.RegistracieCakaren))
+                regi = JsonSerializer.Deserialize<List<Registracia>>(udalost.RegistracieCakaren);
+            regi.Add(registracia);
+            udalost.RegistracieCakaren = JsonSerializer.Serialize(regi);
+        }
         await UdalostService.UpdateAsync(udalost);
 
         udalost.Expanded = false;
         udalost.Prihlaseny = true;
         StateHasChanged();
+    }
+
+    private async Task ShowPrihlasDialog(Udalost udalost)
+    {
+        int maxPocet = udalost.pocet < udalost.max ? udalost.max - udalost.pocet : 10;
+        string nazov = udalost.pocet < udalost.max ? ": " : "do čakárne: ";
+        registracia = new Registracia() { RowKey = udalost.RowKey, Datum = DateTime.Now };
+        var result = await DialogService.OpenAsync("Prihlásenie " + nazov + udalost.Nazov, ds =>
+    @<div class="">
+        <EditForm Model="registracia" OnValidSubmit="() => { HandleValidSubmit(); ds.Close(true); }">
+            <div class="card-body">
+                <DataAnnotationsValidator />
+                <label for="meno">Meno a Priezvisko</label>
+                <InputText id="meno" @bind-Value="registracia.Meno" class="form-control" />
+                <label for="telefon">Telefón</label>
+                <InputText id="telefon" @bind-Value="registracia.Telefon" class="form-control" />
+                <label for="pocet">Počet miest</label>
+                <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control"
+                max="@maxPocet" min="1" />
+            </div>
+            <div class="card-body text-right">
+                <button type="button" class="btn btn-warning" @onclick="() => ds.Close(false)">Zrušiť</button>
+                <button type="submit" class="btn btn-primary">Prihlásiť</button>
+            </div>
+        </EditForm>
+    </div>
+    );
     }
 }
