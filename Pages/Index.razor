@@ -1,0 +1,88 @@
+﻿@page "/"
+
+<PageTitle>Index</PageTitle>
+
+@using Marek.Prihlasenie.Data
+@using System.Text.Json
+@inject UdalostService UdalostService
+
+@if (udalosti.Length == 0)
+{
+    <h1>Počkajte prosím, stránka sa načítava ...</h1>
+}
+
+@foreach (var udalost in udalosti)
+{
+    <div class="bg-light p-3 m-3">
+        <div class="row">
+            <h2 class="col-12">@udalost.Nazov</h2>
+            <div class="col-8">
+                <p>Počet voľných miest: @(udalost.max - udalost.pocet)</p>
+            </div>
+            @if (!udalost.Expanded)
+            {
+                @if (!udalost.Prihlaseny)
+                {
+                    <button class="btn btn-primary col-2" @onclick="() => Expand(udalost)">Prihlásiť</button>
+                }
+                else
+                {
+                    <button class="btn btn-disabled col-2">Prihlásený</button>
+                }
+            }
+            else
+            {
+                <div class="card col-6">
+                    <EditForm Model="registracia" OnValidSubmit="HandleValidSubmit">
+                        <div class="card-body">
+                            <DataAnnotationsValidator />
+                            <label for="meno">Meno a Priezvisko</label>
+                            <InputText id="meno" @bind-Value="registracia.Meno" class="form-control" />
+                            <label for="telefon">Telefón</label>
+                            <InputText id="telefon" @bind-Value="registracia.Telefon" class="form-control" />
+                            <label for="pocet">Počet miest</label>
+                            <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control"
+                        max="@(udalost.max - udalost.pocet)" />
+                        </div>
+                        <div class="card-body text-right">
+                            <button type="button" class="btn btn-warning" @onclick="() => Expand(udalost)">Zrušiť</button>
+                            <button type="submit" class="btn btn-primary">Prihlásiť</button>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private Registracia registracia = new Registracia();
+    private Udalost[] udalosti = Array.Empty<Udalost>();
+    protected override async Task OnInitializedAsync()
+    {
+        udalosti = await UdalostService.GetAllAsync();
+
+    }
+
+    private void Expand(Udalost udalost)
+    {
+        udalost.Expanded = !udalost.Expanded;
+        registracia = new Registracia() { RowKey = udalost.RowKey };
+    }
+
+    private async void HandleValidSubmit()
+    {
+        var udalost = udalosti.FirstOrDefault(u => u.RowKey == registracia.RowKey);
+        udalost.pocet += registracia.pocet;
+        var regi = new List<Registracia>();
+        if (!string.IsNullOrEmpty(udalost.registracie))
+            regi = JsonSerializer.Deserialize<List<Registracia>>(udalost.registracie);
+        regi.Add(registracia);
+        udalost.registracie = JsonSerializer.Serialize(regi);
+        await UdalostService.UpdateAsync(udalost);
+
+        udalost.Expanded = false;
+        udalost.Prihlaseny = true;
+        StateHasChanged();
+    }
+}
