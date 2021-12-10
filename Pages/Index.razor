@@ -1,6 +1,6 @@
 ﻿@page "/"
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Prihlasovanie na sv. omšu</PageTitle>
 
 @using Marek.Prihlasenie.Data
 @using System.Text.Json
@@ -16,8 +16,10 @@
     <div class="bg-light p-3 m-3">
         <div class="row">
             <h2 class="col-12">@udalost.Nazov</h2>
-            <div class="col-8">
-                <p>Počet voľných miest: @(udalost.max - udalost.pocet)</p>
+        </div>
+        <div class="row">
+            <div class="col-9">
+                <p >Počet voľných miest: <b class="fs-2">@(udalost.max - udalost.pocet)</b></p>
             </div>
             @if (!udalost.Expanded)
             {
