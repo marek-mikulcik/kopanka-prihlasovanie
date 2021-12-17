@@ -19,7 +19,13 @@ public class Udalost : ITableEntity
     public bool Expanded { get; set; } = false;
 
     [IgnoreDataMember]
-    public bool Prihlaseny {get; set; } = false;
+    public bool Prihlaseny { get; set; } = false;
     public int PocetCakaren { get; set; }
     public string RegistracieCakaren { get; set; }
+
+    [IgnoreDataMember]
+    public List<Registracia> RegList { get; set; }
+
+    [IgnoreDataMember]
+    public string RegResult { get; set; } = string.Empty;
 }

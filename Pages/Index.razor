@@ -1,4 +1,5 @@
 ﻿@page "/"
+@attribute [AllowAnonymous]
 
 <PageTitle>Prihlasovanie na sv. omšu</PageTitle>
 
@@ -34,6 +35,18 @@
             }
 
         </div>
+        @if (udalost.RegResult.StartsWith("Úspech"))
+        {
+            <div class="alert alert-success" role="alert">
+                <div>@udalost.RegResult</div>
+            </div>
+        }
+        @if (udalost.RegResult.StartsWith("Chyba"))
+        {
+            <div class="alert alert-primary" role="alert">
+                <div>@udalost.RegResult</div>
+            </div>
+        }
     </div>
 }
 
@@ -46,44 +59,58 @@
 
     }
 
-    private void Expand(Udalost udalost)
-    {
-        udalost.Expanded = !udalost.Expanded;
-        registracia = new Registracia() { RowKey = udalost.RowKey };
-    }
-
     private async void HandleValidSubmit()
     {
-        var udalost = udalosti.FirstOrDefault(u => u.RowKey == registracia.RowKey);
-        var regi = new List<Registracia>();
-        if (udalost.pocet < udalost.max)
+        var udalost = udalosti.First(u => u.RowKey == registracia.RowKey);
+        udalost.RegResult = "";
+        var newUdalost = await UdalostService.GetUdalost(registracia.RowKey);
+        udalost.pocet = newUdalost.pocet;
+        try
         {
-            udalost.pocet += registracia.pocet;
-            if (!string.IsNullOrEmpty(udalost.registracie))
-                regi = JsonSerializer.Deserialize<List<Registracia>>(udalost.registracie);
-            regi.Add(registracia);
-            udalost.registracie = JsonSerializer.Serialize(regi);
-        }
-        else
-        {
-            udalost.PocetCakaren += registracia.pocet;
-            if (!string.IsNullOrEmpty(udalost.RegistracieCakaren))
-                regi = JsonSerializer.Deserialize<List<Registracia>>(udalost.RegistracieCakaren);
-            regi.Add(registracia);
-            udalost.RegistracieCakaren = JsonSerializer.Serialize(regi);
-        }
-        await UdalostService.UpdateAsync(udalost);
+            var regi = new List<Registracia>();
 
-        udalost.Expanded = false;
-        udalost.Prihlaseny = true;
+            if (registracia.DoCakarne)
+            {
+                newUdalost.PocetCakaren += registracia.pocet;
+                if (!string.IsNullOrEmpty(newUdalost.RegistracieCakaren))
+                    regi = JsonSerializer.Deserialize<List<Registracia>>(newUdalost.RegistracieCakaren);
+                regi.Add(registracia);
+                newUdalost.RegistracieCakaren = JsonSerializer.Serialize(regi);
+            }
+            else
+            {
+                newUdalost.pocet += registracia.pocet;
+                if (newUdalost.pocet > newUdalost.max)
+                    throw new ApplicationException("Prekroceny max");
+                if (!string.IsNullOrEmpty(newUdalost.registracie))
+                    regi = JsonSerializer.Deserialize<List<Registracia>>(newUdalost.registracie);
+                regi.Add(registracia);
+                newUdalost.registracie = JsonSerializer.Serialize(regi);
+            }
+
+            await UdalostService.UpdateAsync(newUdalost);
+            udalost.Expanded = false;
+            udalost.Prihlaseny = true;
+            udalost.RegResult = "Úspech - Prihlásenie bolo úspešné";
+        }
+        catch (Exception ex)
+        {
+            udalost.RegResult = "Chyba - Prihlásenie zlyhalo, prosím skúste to znova";
+        }
         StateHasChanged();
     }
 
     private async Task ShowPrihlasDialog(Udalost udalost)
     {
-        int maxPocet = udalost.pocet < udalost.max ? udalost.max - udalost.pocet : 10;
-        string nazov = udalost.pocet < udalost.max ? ": " : "do čakárne: ";
-        registracia = new Registracia() { RowKey = udalost.RowKey, Datum = DateTime.Now };
+        registracia = new Registracia()
+        {
+            RowKey = udalost.RowKey,
+            Datum = DateTime.Now,
+            DoCakarne = udalost.pocet >= udalost.max
+        };
+        int maxPocet = registracia.DoCakarne ? 10 : udalost.max - udalost.pocet;
+        string nazov = registracia.DoCakarne ? "do čakárne: " : ": ";
+
         var result = await DialogService.OpenAsync("Prihlásenie " + nazov + udalost.Nazov, ds =>
     @<div class="">
         <EditForm Model="registracia" OnValidSubmit="() => { HandleValidSubmit(); ds.Close(true); }">
@@ -94,8 +121,9 @@
                 <label for="telefon">Telefón</label>
                 <InputText id="telefon" @bind-Value="registracia.Telefon" class="form-control" />
                 <label for="pocet">Počet miest</label>
-                <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control"
-                max="@maxPocet" min="1" />
+                <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control" max="@maxPocet" min="1" />                
+                <label for="op" >Vyhlasujem, že všetci prihlasovaní spĺňajú podmienky režimu OP</label>
+                <InputCheckbox id="op" @bind-Value="registracia.OP" />
             </div>
             <div class="card-body text-right">
                 <button type="button" class="btn btn-warning" @onclick="() => ds.Close(false)">Zrušiť</button>

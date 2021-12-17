@@ -1,14 +1,44 @@
 ﻿@page "/counter"
+@attribute [Authorize]
 
 <PageTitle>Counter</PageTitle>
 
+@using Marek.Prihlasenie.Data
+@using System.Text.Json
+@inject UdalostService UdalostService
+
 <h1>Counter</h1>
 
+@foreach (var udalost in udalosti)
+{
+    <h2>@udalost.Nazov</h2>
+    <table>
+    @foreach (var registracia in udalost.RegList)
+    {
+        <tr>
+            <td>@registracia.Meno</td>
+            <td>@registracia.Telefon</td>
+            <td>@registracia.pocet</td>
+        </tr>
+    }
+    </table>
+}
 <p role="status">Current count: @currentCount</p>
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
 @code {
+
+    private Udalost[] udalosti = Array.Empty<Udalost>();
+    protected override async Task OnInitializedAsync()
+    {
+        udalosti = await UdalostService.GetAllAsync();
+        foreach (var udalost in udalosti)
+        {
+            if (!string.IsNullOrEmpty(udalost.registracie))
+                udalost.RegList = JsonSerializer.Deserialize<List<Registracia>>(udalost.registracie);
+        }
+    }
     private int currentCount = 0;
 
     private void IncrementCount()

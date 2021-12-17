@@ -15,7 +15,7 @@ public class UdalostService
     {
         client = new TableClient(new Uri(url), "prihlasovanie", new DefaultAzureCredential());
     }
-    private async Task<Udalost> GetUdalost(string rowKey)
+    public async Task<Udalost> GetUdalost(string rowKey)
     {
         return await client.GetEntityAsync<Udalost>("main", rowKey);
     }
@@ -27,6 +27,6 @@ public class UdalostService
 
     public async Task UpdateAsync(Udalost udalost)
     {
-        await client.UpsertEntityAsync<Udalost>(udalost);
+        await client.UpdateEntityAsync<Udalost>(udalost, udalost.ETag, TableUpdateMode.Replace);
     }
 }
