@@ -1,48 +1,38 @@
 ﻿@page "/fetchdata"
+@attribute [AllowAnonymous]
 
-<PageTitle>Weather forecast</PageTitle>
+<PageTitle>Prihlasovanie na sv. omšu</PageTitle>
 
 @using Marek.Prihlasenie.Data
-@inject WeatherForecastService ForecastService
+@inject UdalostService UdalostService
+@inject InfoService InfoService
 
-<h1>Weather forecast</h1>
-
-<p>This component demonstrates fetching data from a service.</p>
-
-@if (forecasts == null)
+<h1>Prosíme prihlasujete sa na jeden termín zo všetkých zobrazených</h1>
+<h2>Teraz je: @teraz  rozdiel: </h2>
+@if (udalosti == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        @foreach (var udalost in udalosti)
+        {
+            <UdalostCard udalost=@udalost />
+        }
+    </div>
 }
 
-@code {
-    private WeatherForecast[]? forecasts;
+<p class="pt-4">Ďakujeme za pochopenie a spoluprácu</p>
 
+@code {
+    private Info? info;
+    private List<Udalost>? udalosti;
+    private DateTime teraz = DateTime.Now;
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+        info = await InfoService.GetInfo();
+        var udalostiRaw = await UdalostService.GetUdalostiAsync(info.Terminy.Split(","));
+        udalosti = udalostiRaw.OrderBy(l => l.RowKey).ToList<Udalost>();
     }
 }

@@ -22,9 +22,10 @@ builder.Services.AddAuthorization(options =>
 */
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+builder.Services.AddServerSideBlazor().AddMicrosoftIdentityConsentHandler();
 builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<UdalostService>(s => { return new UdalostService(builder.Configuration["StorageUrl"]); });
+builder.Services.AddScoped<InfoService>(s => { return new InfoService(builder.Configuration["StorageUrl"]); });
 
 var app = builder.Build();
 

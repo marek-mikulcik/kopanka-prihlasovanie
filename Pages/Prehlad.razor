@@ -1,0 +1,57 @@
+﻿@page "/prehlad"
+@attribute [Authorize]
+
+<PageTitle>Prehľad prihlásených</PageTitle>
+
+@using Marek.Prihlasenie.Data
+@using System.Text.Json
+@inject UdalostService UdalostService
+@inject InfoService InfoService
+
+<h1>Prehľad prihlásených</h1>
+@if (udalosti == null)
+{
+    <p><em>Počkajte prosím, stránka sa načítava ...</em></p>
+}
+else
+{
+    @foreach (var udalost in udalosti)
+    {
+        <h2>Svätá omša @udalost.Nazov</h2>
+        <table>
+            @foreach (var registracia in udalost.RegList)
+            {
+                <tr>
+                    <td>@registracia.Meno</td>
+                    <td>@registracia.Telefon</td>
+                    <td>@registracia.pocet</td>
+                </tr>
+            }
+        </table>
+        <h3>Spolu: @udalost.pocet</h3>
+    }
+}
+@code {
+
+    private Udalost[] udalosti;
+    protected override async Task OnInitializedAsync()
+    {
+        var info = await InfoService.GetInfo();
+        udalosti = await UdalostService.GetUdalostiAsync(info.Terminy.Split(","));
+        foreach (var udalost in udalosti)
+        {
+            if (!string.IsNullOrEmpty(udalost.registracie))
+            {
+                udalost.RegList = JsonSerializer.Deserialize<List<Registracia>>(udalost.registracie);
+            }
+            else
+                udalost.RegList = new List<Registracia>();
+        }
+    }
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}

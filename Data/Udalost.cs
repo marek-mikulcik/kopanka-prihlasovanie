@@ -27,5 +27,8 @@ public class Udalost : ITableEntity
     public List<Registracia> RegList { get; set; }
 
     [IgnoreDataMember]
-    public string RegResult { get; set; } = string.Empty;
+    public string RegText { get; set; } = string.Empty;
+
+    [IgnoreDataMember]
+    public bool RegResult { get; set; }
 }

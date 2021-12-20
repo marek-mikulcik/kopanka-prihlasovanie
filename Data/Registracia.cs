@@ -1,6 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Azure;
-using Azure.Data.Tables;
 
 namespace Marek.Prihlasenie.Data;
 
@@ -16,6 +14,6 @@ public class Registracia
     public bool DoCakarne { get; set; }
     public DateTime Datum { get; set; }
 
-    [Required]
-    public bool OP { get; set; } = false;
+    [Required, Range(typeof(bool),"true","true")]
+    public bool OP { get; set; }
 }

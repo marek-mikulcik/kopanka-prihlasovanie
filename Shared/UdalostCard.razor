@@ -1,0 +1,89 @@
+﻿@using Data
+@using System.Text.Json
+@inject DialogService DialogService
+@inject UdalostService UdalostService
+
+<div class="col">
+    <div class="card">
+        <div class="card-header bg-info fs-4">
+            @udalost?.Nazov
+        </div>
+        <div class="card-body">
+            <p class="text-end">Počet voľných miest: <b class="fs-2">@(udalost?.max - udalost?.pocet)</b></p>
+            <div class="alert @(udalost.Prihlaseny ? "alert-info" : "alert-primary")" role="alert"
+                style="display:@(udalost.Expanded ? "block" : "none")">
+                <div>@udalost?.RegText</div>
+            </div>
+            <button class="btn @(udalost.Prihlaseny ? "btn-disabled" : "btn-primary") col-12"
+                style="display:@(showButton ? "block" : "none")"
+                @onclick="async () => await ShowPrihlasDialog(udalost)">
+                Prihlásiť
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    // Demonstrates how a parent component can supply parameters
+    [Parameter, EditorRequired]
+    public Udalost? udalost { get; set; }
+
+    [Parameter]
+    public bool Otvorene { get; set; }
+    private bool showButton { get => Otvorene && (udalost.pocet < udalost.max) && !udalost.Prihlaseny; }
+
+    private Registracia registracia = new Registracia();
+    private async Task ShowPrihlasDialog(Udalost udalost)
+    {
+        registracia = new Registracia()
+        {
+            RowKey = udalost.RowKey,
+            Datum = DateTime.Now,
+            DoCakarne = udalost.pocet >= udalost.max
+        };
+        int maxPocet = registracia.DoCakarne ? 10 : udalost.max - udalost.pocet;
+        string nazov = registracia.DoCakarne ? "do čakárne: " : ": ";
+
+        var result = await DialogService.OpenAsync("Prihlásenie " + nazov + udalost.Nazov, ds =>
+    @<div class="">
+        <EditForm Model="registracia" OnValidSubmit="() => { HandleValidSubmit(); ds.Close(true); }">
+            <div class="card-body">
+                <DataAnnotationsValidator />
+                <label for="meno">Meno a Priezvisko</label>
+                <InputText id="meno" @bind-Value="registracia.Meno" class="form-control" />
+                <label for="telefon">Telefón</label>
+                <InputText id="telefon" @bind-Value="registracia.Telefon" class="form-control" />
+                <label for="pocet">Počet miest</label>
+                <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control" max="@maxPocet" min="1" />
+                <label for="op">Vyhlasujem, že všetci prihlasovaní spĺňajú podmienky režimu OP</label>
+                <InputCheckbox id="op" @bind-Value="registracia.OP" />
+            </div>
+            <div class="card-body text-right">
+                <button type="button" class="btn btn-warning" @onclick="() => ds.Close(false)">Zrušiť</button>
+                <button type="submit" class="btn btn-primary">Prihlásiť</button>
+            </div>
+        </EditForm>
+    </div>
+    );
+    }
+    private async void HandleValidSubmit()
+    {
+        udalost.Expanded = true;
+        udalost.Prihlaseny = true;
+        udalost.RegText = "Prihlasujem ...";
+        //registracia.pocet += 1;
+        try
+        {
+            await UdalostService.Registruj(udalost.RowKey, registracia);
+
+            udalost.pocet += registracia.pocet;
+            udalost.RegText = "Úspech - Prihlásenie bolo úspešné";
+        }
+        catch (System.Exception)
+        {
+            udalost.Prihlaseny = false;
+            udalost.RegText = "Chyba - Prihlásenie zlyhalo, prosím skúste to znova";
+        }
+        StateHasChanged();
+    }
+}

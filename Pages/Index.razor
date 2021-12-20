@@ -2,135 +2,54 @@
 @attribute [AllowAnonymous]
 
 <PageTitle>Prihlasovanie na sv. omšu</PageTitle>
-
 @using Marek.Prihlasenie.Data
-@using System.Text.Json
 @inject UdalostService UdalostService
-@inject DialogService DialogService
+@inject InfoService InfoService
 
-@if (udalosti.Length == 0)
+<h1>Prosíme prihlasujete sa na jeden termín zo všetkých zobrazených</h1>
+@if (info != null)
 {
-    <h1>Počkajte prosím, stránka sa načítava ...</h1>
+    <h2 style="display:@(info?.Zaciatok > teraz ? "block" : "none")">Prihlasovanie začína
+        @info?.Zaciatok <small class="fs-6"> už o @((int)(info?.Zaciatok - teraz).Value.TotalMinutes)
+            minút</small></h2>
+    <h2 style="display:@(teraz > info?.Koniec ? "block" : "none")">Prihlasovanie bolo ukončené</h2>
 }
-
-@foreach (var udalost in udalosti)
+@if (udalosti == null)
 {
-    <div class="bg-light p-3 m-3">
-        <div class="row">
-            <h2 class="col-12">@udalost.Nazov</h2>
-        </div>
-        <div class="row">
-            <div class="col-9">
-                <p>Počet voľných miest: <b class="fs-2">@(udalost.max - udalost.pocet)</b></p>
-            </div>
-            @if (!udalost.Prihlaseny)
-            {
-                <button class="btn btn-primary col-2" @onclick="() => ShowPrihlasDialog(udalost)">
-                    @(udalost.pocet < udalost.max ? "Prihlásiť" : "Prihlásiť do čakárne")
-                </button>
-            }
-            else
-            {
-                <button class="btn btn-disabled col-2">Prihlásený</button>
-            }
-
-        </div>
-        @if (udalost.RegResult.StartsWith("Úspech"))
+    <p><em>Počkajte prosím, stránka sa načítava ...</em></p>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        @foreach (var udalost in udalosti)
         {
-            <div class="alert alert-success" role="alert">
-                <div>@udalost.RegResult</div>
-            </div>
-        }
-        @if (udalost.RegResult.StartsWith("Chyba"))
-        {
-            <div class="alert alert-primary" role="alert">
-                <div>@udalost.RegResult</div>
-            </div>
+            <UdalostCard udalost=@udalost Otvorene=@prihlasovanieOtvorene />
         }
     </div>
 }
+
+<p class="pt-4">Ďakujeme za pochopenie a spoluprácu</p>
 
 @code {
-    private Registracia registracia = new Registracia();
-    private Udalost[] udalosti = Array.Empty<Udalost>();
+    private bool prihlasovanieOtvorene = false;
+    private Info? info;
+    private List<Udalost>? udalosti;
+    private DateTime teraz = DateTime.Now;
     protected override async Task OnInitializedAsync()
     {
-        udalosti = await UdalostService.GetAllAsync();
+        info = await InfoService.GetInfo();
+        var udalostiRaw = await UdalostService.GetUdalostiAsync(info.Terminy.Split(","));
+        udalosti = udalostiRaw.OrderBy(l => l.RowKey).ToList<Udalost>();
 
-    }
-
-    private async void HandleValidSubmit()
-    {
-        var udalost = udalosti.First(u => u.RowKey == registracia.RowKey);
-        udalost.RegResult = "";
-        var newUdalost = await UdalostService.GetUdalost(registracia.RowKey);
-        udalost.pocet = newUdalost.pocet;
-        try
+        prihlasovanieOtvorene = info.Zaciatok < teraz && teraz < info.Koniec;
+        if (info.Zaciatok > DateTime.Now)
         {
-            var regi = new List<Registracia>();
-
-            if (registracia.DoCakarne)
+            var timer = new System.Threading.Timer((_) =>
             {
-                newUdalost.PocetCakaren += registracia.pocet;
-                if (!string.IsNullOrEmpty(newUdalost.RegistracieCakaren))
-                    regi = JsonSerializer.Deserialize<List<Registracia>>(newUdalost.RegistracieCakaren);
-                regi.Add(registracia);
-                newUdalost.RegistracieCakaren = JsonSerializer.Serialize(regi);
-            }
-            else
-            {
-                newUdalost.pocet += registracia.pocet;
-                if (newUdalost.pocet > newUdalost.max)
-                    throw new ApplicationException("Prekroceny max");
-                if (!string.IsNullOrEmpty(newUdalost.registracie))
-                    regi = JsonSerializer.Deserialize<List<Registracia>>(newUdalost.registracie);
-                regi.Add(registracia);
-                newUdalost.registracie = JsonSerializer.Serialize(regi);
-            }
-
-            await UdalostService.UpdateAsync(newUdalost);
-            udalost.Expanded = false;
-            udalost.Prihlaseny = true;
-            udalost.RegResult = "Úspech - Prihlásenie bolo úspešné";
+                teraz = DateTime.Now;
+                prihlasovanieOtvorene = info.Zaciatok < teraz && teraz < info.Koniec;
+                InvokeAsync(StateHasChanged);
+            }, null, 0, 60 * 1000);
         }
-        catch (Exception ex)
-        {
-            udalost.RegResult = "Chyba - Prihlásenie zlyhalo, prosím skúste to znova";
-        }
-        StateHasChanged();
-    }
-
-    private async Task ShowPrihlasDialog(Udalost udalost)
-    {
-        registracia = new Registracia()
-        {
-            RowKey = udalost.RowKey,
-            Datum = DateTime.Now,
-            DoCakarne = udalost.pocet >= udalost.max
-        };
-        int maxPocet = registracia.DoCakarne ? 10 : udalost.max - udalost.pocet;
-        string nazov = registracia.DoCakarne ? "do čakárne: " : ": ";
-
-        var result = await DialogService.OpenAsync("Prihlásenie " + nazov + udalost.Nazov, ds =>
-    @<div class="">
-        <EditForm Model="registracia" OnValidSubmit="() => { HandleValidSubmit(); ds.Close(true); }">
-            <div class="card-body">
-                <DataAnnotationsValidator />
-                <label for="meno">Meno a Priezvisko</label>
-                <InputText id="meno" @bind-Value="registracia.Meno" class="form-control" />
-                <label for="telefon">Telefón</label>
-                <InputText id="telefon" @bind-Value="registracia.Telefon" class="form-control" />
-                <label for="pocet">Počet miest</label>
-                <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control" max="@maxPocet" min="1" />                
-                <label for="op" >Vyhlasujem, že všetci prihlasovaní spĺňajú podmienky režimu OP</label>
-                <InputCheckbox id="op" @bind-Value="registracia.OP" />
-            </div>
-            <div class="card-body text-right">
-                <button type="button" class="btn btn-warning" @onclick="() => ds.Close(false)">Zrušiť</button>
-                <button type="submit" class="btn btn-primary">Prihlásiť</button>
-            </div>
-        </EditForm>
-    </div>
-    );
     }
 }
