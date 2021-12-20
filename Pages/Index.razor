@@ -31,10 +31,11 @@ else
 <p class="pt-4">Ďakujeme za pochopenie a spoluprácu</p>
 
 @code {
+    private static TimeZoneInfo tzi = TimeZoneInfo.FindSystemTimeZoneById("Europe/Bratislava");
     private bool prihlasovanieOtvorene = false;
     private Info? info;
     private List<Udalost>? udalosti;
-    private DateTime teraz = DateTime.Now.ToLocalTime();
+    private DateTime teraz = TimeZoneInfo.ConvertTime(DateTime.Now, tzi);
     protected override async Task OnInitializedAsync()
     {
         info = await InfoService.GetInfo();
@@ -46,7 +47,7 @@ else
         {
             var timer = new System.Threading.Timer((_) =>
             {
-                teraz = DateTime.Now.ToLocalTime();
+                teraz = TimeZoneInfo.ConvertTime(DateTime.Now, tzi);
                 prihlasovanieOtvorene = info.Zaciatok < teraz && teraz < info.Koniec;
                 InvokeAsync(StateHasChanged);
             }, null, 0, 60 * 1000);
