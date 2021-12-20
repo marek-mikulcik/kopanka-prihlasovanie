@@ -21,6 +21,7 @@ builder.Services.AddAuthorization(options =>
 });
 */
 // Add services to the container.
+builder.Services.AddLocalization();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor().AddMicrosoftIdentityConsentHandler();
 builder.Services.AddScoped<DialogService>();
@@ -29,6 +30,7 @@ builder.Services.AddScoped<InfoService>(s => { return new InfoService(builder.Co
 
 var app = builder.Build();
 
+app.UseRequestLocalization("sk-SK");
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
