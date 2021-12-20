@@ -34,7 +34,7 @@ else
     private bool prihlasovanieOtvorene = false;
     private Info? info;
     private List<Udalost>? udalosti;
-    private DateTime teraz = DateTime.Now;
+    private DateTime teraz = DateTime.Now.ToLocalTime();
     protected override async Task OnInitializedAsync()
     {
         info = await InfoService.GetInfo();
@@ -46,7 +46,7 @@ else
         {
             var timer = new System.Threading.Timer((_) =>
             {
-                teraz = DateTime.Now;
+                teraz = DateTime.Now.ToLocalTime();
                 prihlasovanieOtvorene = info.Zaciatok < teraz && teraz < info.Koniec;
                 InvokeAsync(StateHasChanged);
             }, null, 0, 60 * 1000);
