@@ -10,6 +10,7 @@ public class Udalost : ITableEntity
     public int max { get; set; }
     public int pocet { get; set; }
     public string registracie { get; set; }
+    public bool Visible { get; set; } = true;
     public string PartitionKey { get; set; }
     public string RowKey { get; set; }
     public DateTimeOffset? Timestamp { get; set; }

@@ -3,7 +3,7 @@
 @inject DialogService DialogService
 @inject UdalostService UdalostService
 
-<div class="col">
+<div class="col @(udalost.Visible ? "visible" : "invisible")">
     <div class="card">
         <div class="card-header bg-info fs-4">
             @udalost?.Nazov
