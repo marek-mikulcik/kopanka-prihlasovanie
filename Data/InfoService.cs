@@ -11,8 +11,8 @@ public class InfoService
     {
         client = new TableClient(new Uri(url), "prihlasovanie", new DefaultAzureCredential());
     }
-    public async Task<Info> GetInfo()
+    public async Task<Info> GetInfo(string tenant)
     {
-        return await client.GetEntityAsync<Info>("main", "main");
+        return await client.GetEntityAsync<Info>(tenant.ToLower(), "main");
     }
 }

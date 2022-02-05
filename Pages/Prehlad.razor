@@ -1,4 +1,5 @@
 ﻿@page "/prehlad"
+@page "/prehlad/{tenant}"
 @attribute [Authorize]
 
 <PageTitle>Prehľad prihlásených</PageTitle>
@@ -32,11 +33,12 @@ else
     }
 }
 @code {
-
+    [Parameter]
+    public string? Tenant { get; set; }
     private Udalost[] udalosti;
     protected override async Task OnInitializedAsync()
     {
-        var info = await InfoService.GetInfo();
+        var info = await InfoService.GetInfo(Tenant ?? "main");
         udalosti = await UdalostService.GetUdalostiAsync(info.Terminy.Split(","));
         foreach (var udalost in udalosti)
         {

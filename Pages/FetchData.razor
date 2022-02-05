@@ -31,7 +31,7 @@ else
     private DateTime teraz = DateTime.Now;
     protected override async Task OnInitializedAsync()
     {
-        info = await InfoService.GetInfo();
+        info = await InfoService.GetInfo("main");
         var udalostiRaw = await UdalostService.GetUdalostiAsync(info.Terminy.Split(","));
         udalosti = udalostiRaw.OrderBy(l => l.RowKey).ToList<Udalost>();
     }

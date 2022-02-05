@@ -1,4 +1,5 @@
 ﻿@page "/"
+@page "/prihlasenie/{tenant}"
 @attribute [AllowAnonymous]
 
 <PageTitle>Prihlasovanie na sv. omšu</PageTitle>
@@ -32,6 +33,8 @@ else
 <p class="pt-4">Ďakujeme za pochopenie a spoluprácu</p>
 
 @code {
+    [Parameter]
+    public string? Tenant { get; set; }
     private static TimeZoneInfo tzi = TimeZoneInfo.FindSystemTimeZoneById("Europe/Bratislava");
     private bool prihlasovanieOtvorene = false;
     private Info? info;
@@ -39,7 +42,7 @@ else
     private DateTime teraz = TimeZoneInfo.ConvertTime(DateTime.Now, tzi);
     protected override async Task OnInitializedAsync()
     {
-        info = await InfoService.GetInfo();
+        info = await InfoService.GetInfo(Tenant ?? "main");
         var udalostiRaw = await UdalostService.GetUdalostiAsync(info.Terminy.Split(","));
         udalosti = udalostiRaw.OrderBy(l => l.RowKey).ToList<Udalost>();
 
