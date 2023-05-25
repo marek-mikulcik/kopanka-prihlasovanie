@@ -122,8 +122,7 @@
                 <InputText id="telefon" @bind-Value="registracia.Telefon" class="form-control" />
                 <label for="pocet">Počet miest</label>
                 <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control" max="@maxPocet" min="1" />                
-                <label for="op" >Vyhlasujem, že všetci prihlasovaní spĺňajú podmienky režimu OP</label>
-                <InputCheckbox id="op" @bind-Value="registracia.OP" />
+
             </div>
             <div class="card-body text-right">
                 <button type="button" class="btn btn-warning" @onclick="() => ds.Close(false)">Zrušiť</button>

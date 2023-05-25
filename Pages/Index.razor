@@ -2,13 +2,13 @@
 @page "/prihlasenie/{tenant}"
 @attribute [AllowAnonymous]
 
-<PageTitle>Prihlasovanie na sv. omšu</PageTitle>
+<PageTitle>Prihlasovanie na duchovné cvičenia</PageTitle>
 @using Marek.Prihlasenie.Data
 @inject UdalostService UdalostService
 @inject InfoService InfoService
 
-<h1>Prosíme prihlasujete sa na jeden termín zo všetkých zobrazených</h1>
-<p>Podľa aktuálnych nariadení je potrebné prihlásiť všetkých zúčastných, aj malé deti</p>
+<h1>Termíny duchovných cvičení</h1>
+<p>Prosím vyberte si z nasledujúcich možností</p>
 @if (info != null)
 {
     <h2 style="display:@(info?.Zaciatok > teraz ? "block" : "none")">Prihlasovanie začína
@@ -22,7 +22,7 @@
 }
 else
 {
-    <div class="row row-cols-1 row-cols-md-4 g-4">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
         @foreach (var udalost in udalosti)
         {
             <UdalostCard udalost=@udalost Otvorene=@prihlasovanieOtvorene />

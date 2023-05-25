@@ -9,12 +9,24 @@
             @udalost?.Nazov
         </div>
         <div class="card-body">
-            <p class="text-end">Počet voľných miest: <b class="fs-2">@(udalost?.max - udalost?.pocet)</b></p>
+            <div class="row">
+                <div class="col">
+                    @((MarkupString)udalost.HtmlPopis)
+                </div>
+                <div class="col">
+                    <p class="text-end">Počet voľných miest: <b class="fs-2">@(udalost?.max - udalost?.pocet)</b></p>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group" role="group">
+            <a class="btn btn-outline-info" style="display:@(showButton ? "block" : "none")" href="@($"/prihlaseni/{udalost.RowKey}")">
+                Prihlaseni
+            </a>
             <div class="alert @(udalost.Prihlaseny ? "alert-info" : "alert-primary")" role="alert"
                 style="display:@(udalost.Expanded ? "block" : "none")">
                 <div>@udalost?.RegText</div>
             </div>
-            <button class="btn @(udalost.Prihlaseny ? "btn-disabled" : "btn-primary") col-12"
+            <button class="btn btn-outline-primary @(udalost.Prihlaseny ? "btn-disabled" : "btn-primary") col-6"
                 style="display:@(showButton ? "block" : "none")"
                 @onclick="async () => await ShowPrihlasDialog(udalost)">
                 Prihlásiť
@@ -31,7 +43,6 @@
     [Parameter]
     public bool Otvorene { get; set; }
     private bool showButton { get => Otvorene && (udalost.pocet < udalost.max) && !udalost.Prihlaseny; }
-
     private Registracia registracia = new Registracia();
     private async Task ShowPrihlasDialog(Udalost udalost)
     {
@@ -55,8 +66,7 @@
                 <InputText id="telefon" @bind-Value="registracia.Telefon" class="form-control" />
                 <label for="pocet">Počet miest</label>
                 <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control" max="@maxPocet" min="1" />
-                <label for="op">Vyhlasujem, že všetci prihlasovaní spĺňajú podmienky režimu OP</label>
-                <InputCheckbox id="op" @bind-Value="registracia.OP" />
+
             </div>
             <div class="card-body text-right">
                 <button type="button" class="btn btn-warning" @onclick="() => ds.Close(false)">Zrušiť</button>

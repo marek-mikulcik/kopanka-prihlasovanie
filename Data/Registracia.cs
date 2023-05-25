@@ -14,6 +14,4 @@ public class Registracia
     public bool DoCakarne { get; set; }
     public DateTime Datum { get; set; }
 
-    [Required, Range(typeof(bool),"true","true")]
-    public bool OP { get; set; }
 }
