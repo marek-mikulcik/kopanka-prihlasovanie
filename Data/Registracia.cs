@@ -6,8 +6,12 @@ public class Registracia
 {
     [Required]
     public string Meno { get; set; }
+    [Required, MinLength(13), MaxLength(13), RegularExpression("^[\\+421][0-9]*$")]
+    [Phone]
+    public string Telefon { get; set; } = "+421";
     [Required]
-    public string Telefon { get; set; }
+    [EmailAddress]
+    public string Email { get; set; }
     [Required]
     public int pocet { get; set; } = 1;
     public string RowKey { get; set; }
