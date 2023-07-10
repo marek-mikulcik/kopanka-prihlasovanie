@@ -18,13 +18,14 @@ else
 {
     @foreach (var udalost in udalosti)
     {
-        <h2>Svätá omša @udalost.Nazov</h2>
+        <h2>@udalost.Nazov</h2>
         <table>
             @foreach (var registracia in udalost.RegList)
             {
                 <tr>
                     <td>@registracia.Meno</td>
                     <td>@registracia.Telefon</td>
+                    <td>@registracia.Email</td>
                     <td>@registracia.pocet</td>
                 </tr>
             }
