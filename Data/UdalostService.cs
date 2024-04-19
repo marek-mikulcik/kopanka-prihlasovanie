@@ -59,4 +59,19 @@ public class UdalostService
 
         return true;
     }
+
+    public async Task<bool> OdRegistruj(string rowKey, int Id)
+    {
+        var udalostResponse = await client.GetEntityAsync<Udalost>("main", rowKey);
+        var udalost = udalostResponse.Value;
+        var registracie = new List<Registracia>();
+        if (!string.IsNullOrEmpty(udalost.registracie))
+            registracie = JsonSerializer.Deserialize<List<Registracia>>(udalost.registracie);
+        var registracia = (registracie?.First(r => r.Id == Id)) ?? throw new ApplicationException("Zadana registracia neexistuje!");
+        registracie.Remove(registracia);
+        udalost.registracie = JsonSerializer.Serialize(registracie);
+        await client.UpdateEntityAsync<Udalost>(udalost, udalost.ETag, TableUpdateMode.Replace);
+
+        return true;
+    }    
 }

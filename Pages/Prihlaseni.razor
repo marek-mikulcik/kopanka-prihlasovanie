@@ -6,6 +6,7 @@
 @using System.Text.Json
 @inject UdalostService UdalostService
 @inject InfoService InfoService
+@inject DialogService DialogService
 
 <h1>Prehľad prihlásených</h1>
 @if (udalost == null)
@@ -31,7 +32,7 @@ else
         <ul class="list-group list-group-flush">
             @foreach (var registracia in udalost.RegList)
             {
-                <li class="list-group-item">@registracia.Meno [@(registracia.pocet)]</li>
+                <a href="#" class="list-group-item list-group-item-action" onclick="async () => await ShowOdhlasDialog(registracia)">@registracia.Meno</a>
             }
         </ul>
     </div>
@@ -58,4 +59,32 @@ else
     {
         currentCount++;
     }
+    private Registracia odregistracia = new Registracia();
+    private async Task ShowOdhlasDialog(Registracia registracia)
+    {
+        odregistracia = registracia;
+        odregistracia.Telefon = "";
+
+        var result = await DialogService.OpenAsync("Odhlásenie: " + registracia.Meno, ds =>
+        @<div class="">
+            <EditForm Model="registracia" OnValidSubmit="() => { HandleValidSubmit(); ds.Close(true); }">
+                <div class="card-body">
+                    <DataAnnotationsValidator />
+                    <label for="meno">Meno a Priezvisko</label>
+                    <InputText id="meno" @bind-Value="registracia.Meno" class="form-control" disabled="disabled" />
+                    <label for="telefon">Prosím zadajte správne telefón</label>
+                    <InputText id="telefon" @bind-Value="registracia.Telefon" class="form-control" />
+                    
+                </div>
+                <div class="card-body text-right">
+                    <button type="button" class="btn btn-warning" @onclick="() => ds.Close(false)">Zrušiť</button>
+                    <button type="submit" class="btn btn-primary">Prihlásiť</button>
+                </div>
+            </EditForm>
+        </div>
+        ); 
+    }
+
+    private async void HandleValidSubmit()
+    {}
 }
