@@ -48,6 +48,7 @@
     {
         registracia = new Registracia()
         {
+            Id = ++udalost.LastId,
             RowKey = udalost.RowKey,
             Datum = DateTime.Now,
             DoCakarne = udalost.pocet >= udalost.max

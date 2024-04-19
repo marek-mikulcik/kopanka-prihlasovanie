@@ -33,4 +33,6 @@ public class Udalost : ITableEntity
 
     [IgnoreDataMember]
     public bool RegResult { get; set; }
+
+    public int LastId { get; set; } = 0;
 }

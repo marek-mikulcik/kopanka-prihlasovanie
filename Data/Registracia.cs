@@ -5,6 +5,9 @@ namespace Marek.Prihlasenie.Data;
 public class Registracia
 {
     [Required]
+    public int Id { get; set; }
+    
+    [Required]
     public string Meno { get; set; }
     [Required, MinLength(13), MaxLength(13), RegularExpression("^[\\+421][0-9]*$")]
     [Phone]
