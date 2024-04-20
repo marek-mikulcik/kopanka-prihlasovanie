@@ -69,7 +69,8 @@
                 <InputText id="email" @bind-Value="registracia.Email" class="form-control" />
                 <label for="pocet">Počet miest</label>
                 <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control" max="@maxPocet" min="1" disabled="disabled" />
-
+                <label for="rocnik">Aktuálny ročník ZŠ</label>
+                <InputText id="rocnik" @bind-Value="registracia.Rocnik" class="form-control" />
             </div>
             <div class="card-body text-right">
                 <button type="button" class="btn btn-warning" @onclick="() => ds.Close(false)">Zrušiť</button>

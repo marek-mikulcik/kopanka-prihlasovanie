@@ -17,6 +17,9 @@ public class Registracia
     public string Email { get; set; }
     [Required]
     public int pocet { get; set; } = 1;
+
+    [Required]
+    public string Rocnik {get; set; } 
     public string RowKey { get; set; }
     public bool DoCakarne { get; set; }
     public DateTime Datum { get; set; }
