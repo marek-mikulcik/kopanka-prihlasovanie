@@ -48,6 +48,7 @@ public class UdalostService
         var udalostResponse = await client.GetEntityAsync<Udalost>("main", rowKey);
         var udalost = udalostResponse.Value;
         udalost.pocet += registracia.pocet;
+        udalost.LastId++;
         if (udalost.pocet > udalost.max)
             throw new ApplicationException("Prekroceny max");
         var registracie = new List<Registracia>();
@@ -60,10 +61,12 @@ public class UdalostService
         return true;
     }
 
-    public async Task<bool> OdRegistruj(string rowKey, int Id)
+    public async Task<bool> OdRegistruj(string rowKey, int Id, int pocet)
     {
         var udalostResponse = await client.GetEntityAsync<Udalost>("main", rowKey);
         var udalost = udalostResponse.Value;
+        udalost.pocet -= pocet;
+
         var registracie = new List<Registracia>();
         if (!string.IsNullOrEmpty(udalost.registracie))
             registracie = JsonSerializer.Deserialize<List<Registracia>>(udalost.registracie);

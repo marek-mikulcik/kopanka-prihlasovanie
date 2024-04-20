@@ -32,7 +32,7 @@ else
         <ul class="list-group list-group-flush">
             @foreach (var registracia in udalost.RegList)
             {
-                <a href="javascript:void(0);" class="list-group-item list-group-item-action" onclick="async () => await ShowOdhlasDialog(registracia)">@registracia.Meno</a>
+                <button class="list-group-item list-group-item-action" @onclick="async () => await ShowOdhlasDialog(registracia)">@registracia.Meno - kliknutím odhlásiť</button>
             }
         </ul>
     </div>
@@ -44,6 +44,20 @@ else
     protected override async Task OnInitializedAsync()
     {
         //var info = await InfoService.GetInfo(Tenant ?? "main");
+        await LoadUdalost();
+        /*
+        udalost = await UdalostService.GetUdalost(udalostKey);        
+        if (!string.IsNullOrEmpty(udalost.registracie))
+        {
+            udalost.RegList = JsonSerializer.Deserialize<List<Registracia>>(udalost.registracie);
+        }
+        else
+            udalost.RegList = new List<Registracia>();   
+        */     
+    }
+
+    private async Task LoadUdalost()
+    {
         udalost = await UdalostService.GetUdalost(udalostKey);
 
         if (!string.IsNullOrEmpty(udalost.registracie))
@@ -51,7 +65,7 @@ else
             udalost.RegList = JsonSerializer.Deserialize<List<Registracia>>(udalost.registracie);
         }
         else
-            udalost.RegList = new List<Registracia>();        
+            udalost.RegList = new List<Registracia>();  
     }
     private int currentCount = 0;
 
@@ -59,32 +73,39 @@ else
     {
         currentCount++;
     }
-    private Registracia odregistracia = new Registracia();
+    private OdRegistracia odregistracia = new OdRegistracia();
     private async Task ShowOdhlasDialog(Registracia registracia)
     {
-        odregistracia = registracia;
-        odregistracia.Telefon = "";
-
+        odregistracia = new OdRegistracia()
+        {
+            Id = registracia.Id,
+            OldTelefon = registracia.Telefon,
+            RowKey = registracia.RowKey,
+            pocet = registracia.pocet
+        };
         var result = await DialogService.OpenAsync("Odhlásenie: " + registracia.Meno, ds =>
         @<div class="">
-            <EditForm Model="registracia" OnValidSubmit="() => { HandleValidSubmit(); ds.Close(true); }">
+            <EditForm Model="odregistracia" OnValidSubmit="() => { HandleValidSubmit(); ds.Close(true); }">
                 <div class="card-body">
                     <DataAnnotationsValidator />
-                    <label for="meno">Meno a Priezvisko</label>
-                    <InputText id="meno" @bind-Value="registracia.Meno" class="form-control" disabled="disabled" />
-                    <label for="telefon">Prosím zadajte správne telefón</label>
-                    <InputText id="telefon" @bind-Value="registracia.Telefon" class="form-control" />
+                    <label for="telefon">Pre odhlásenie zadajte správne telefón</label>
+                    <InputText id="telefon" @bind-Value="odregistracia.Telefon" class="form-control" />
                     
                 </div>
                 <div class="card-body text-right">
                     <button type="button" class="btn btn-warning" @onclick="() => ds.Close(false)">Zrušiť</button>
-                    <button type="submit" class="btn btn-primary">Prihlásiť</button>
+                    <button type="submit" class="btn btn-primary" >Odhlásiť</button>
                 </div>
             </EditForm>
         </div>
-        ); 
+    ); 
     }
 
     private async void HandleValidSubmit()
-    {}
+    {
+        await UdalostService.OdRegistruj(odregistracia.RowKey, odregistracia.Id, odregistracia.pocet);
+        //udalost = await UdalostService.GetUdalost(odregistracia.RowKey);
+        await LoadUdalost();
+        StateHasChanged();
+    }
 }
