@@ -32,7 +32,7 @@ else
         <ul class="list-group list-group-flush">
             @foreach (var registracia in udalost.RegList)
             {
-                <button class="list-group-item list-group-item-action" onclick="async () => await ShowOdhlasDialog(registracia)">@registracia.Meno - kliknutím odhlásiť</button>
+                <button class="list-group-item list-group-item-action" @onclick="async () => await ShowOdhlasDialog(registracia)">@registracia.Meno - kliknutím odhlásiť</button>
             }
         </ul>
     </div>
@@ -85,7 +85,7 @@ else
         };
         var result = await DialogService.OpenAsync("Odhlásenie: " + registracia.Meno, ds =>
         @<div class="">
-            <EditForm Model="odregistracia" OnValidSubmit="() => { HandleValidSubmit(); ds.Close(true); }">
+            <EditForm Model="odregistracia" OnValidSubmit="() => { HandleValidSubmit(odregistracia); ds.Close(true); }">
                 <div class="card-body">
                     <DataAnnotationsValidator />
                     <label for="telefon">Pre odhlásenie zadajte správne telefón</label>
@@ -101,9 +101,9 @@ else
     ); 
     }
 
-    private async void HandleValidSubmit()
+    private async void HandleValidSubmit(OdRegistracia odRegistracia)
     {
-        await UdalostService.OdRegistruj(odregistracia.RowKey, odregistracia.Id, odregistracia.pocet);
+        await UdalostService.OdRegistruj(odRegistracia.RowKey, odRegistracia.Id, odRegistracia.pocet);
         //udalost = await UdalostService.GetUdalost(odregistracia.RowKey);
         await LoadUdalost();
         StateHasChanged();
