@@ -103,7 +103,7 @@ else
 
     private async void HandleValidSubmit(OdRegistracia odRegistracia)
     {
-        await UdalostService.OdRegistruj(odRegistracia.RowKey, odRegistracia.Id, odRegistracia.pocet);
+        await UdalostService.OdRegistruj(odRegistracia.RowKey, odRegistracia.Id, odRegistracia.Telefon, odRegistracia.pocet);
         //udalost = await UdalostService.GetUdalost(odregistracia.RowKey);
         await LoadUdalost();
         StateHasChanged();
