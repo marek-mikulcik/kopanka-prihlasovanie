@@ -25,16 +25,26 @@ else
                     @((MarkupString)udalost.HtmlPopis)
                 </div>
                 <div class="col">
-                    <p class="text-end">Počet voľných miest: <b class="fs-2">@(udalost?.max - udalost?.pocet)</b></p>
+                    <p class="text-end">Počet voľných miest: <b class="fs-2">@(udalost?.max - udalost?.pocet > 0 ? udalost?.max - udalost?.pocet : 0)</b></p>
                 </div>
             </div>
         </div>
         <ul class="list-group list-group-flush">
-            @foreach (var registracia in udalost.RegList)
+            @foreach (var registracia in udalost.RegList.OrderBy(r => r.Id).Take(udalost.max))
             {
                 <button class="list-group-item list-group-item-action" @onclick="async () => await ShowOdhlasDialog(registracia)">@registracia.Meno - kliknutím odhlásiť</button>
             }
         </ul>
+        @if(udalost.RegList.Count > udalost.max)
+        {
+        <div>Náhradníci</div>
+        <ul class="list-group list-group-flush">
+            @foreach (var registracia in udalost.RegList.OrderBy(r => r.Id).Skip(udalost.max))
+            {
+                <button class="list-group-item list-group-item-action" @onclick="async () => await ShowOdhlasDialog(registracia)">@registracia.Meno - kliknutím odhlásiť</button>
+            }
+        </ul>
+        }
     </div>
 }
 @code {

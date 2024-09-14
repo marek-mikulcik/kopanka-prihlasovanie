@@ -50,7 +50,7 @@ public class UdalostService
         udalost.pocet += registracia.pocet;
         udalost.LastId++;
         registracia.Id = udalost.LastId;
-        if (udalost.pocet > udalost.max)
+        if (udalost.pocet > udalost.max + udalost.MaxNahradnik)
             throw new ApplicationException("Prekroceny max");
         var registracie = new List<Registracia>();
         if (!string.IsNullOrEmpty(udalost.registracie))

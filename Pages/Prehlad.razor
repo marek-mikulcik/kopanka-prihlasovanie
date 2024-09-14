@@ -20,9 +20,10 @@ else
     {
         <h2>@udalost.Nazov</h2>
         <table>
-            @foreach (var registracia in udalost.RegList)
+            @foreach (var registracia in udalost.RegList.OrderBy(r => r.Id))
             {
                 <tr>
+                    <td>@registracia.Id</td>
                     <td>@registracia.Meno</td>
                     <td>@registracia.Telefon</td>
                     <td>@registracia.Email</td>
@@ -30,7 +31,7 @@ else
                 </tr>
             }
         </table>
-        <h3>Spolu: @udalost.pocet</h3>
+        <h3>Spolu: @udalost.pocet / @udalost.max</h3>
     }
 }
 @code {

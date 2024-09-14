@@ -8,6 +8,8 @@ public class Udalost : ITableEntity
 {
     public string Nazov { get; set; }
     public int max { get; set; }
+
+    public int MaxNahradnik {get; set; } = 0;
     public int pocet { get; set; }
     public string registracie { get; set; }
     public bool Visible { get; set; } = true;
@@ -35,4 +37,6 @@ public class Udalost : ITableEntity
     public bool RegResult { get; set; }
 
     public int LastId { get; set; } = 0;
+
+    public bool RocnikRequired { get; set; } = false;
 }

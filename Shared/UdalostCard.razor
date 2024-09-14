@@ -13,13 +13,17 @@
                 <div class="col">
                     @((MarkupString)udalost.HtmlPopis)
                 </div>
-                <div class="col">
-                    <p class="text-end">Počet voľných miest: <b class="fs-2">@(udalost?.max - udalost?.pocet)</b></p>
+                <div class="col">                    
+                    <p class="text-end">Počet voľných miest: <b class="fs-2">@(udalost?.max - udalost?.pocet < 0 ? 0 : udalost?.max - udalost?.pocet)</b></p>
+                    @if(udalost?.max <= udalost?.pocet)
+                    {
+                    <p class="text-end">Počet voľných miest ako náhradník: <b class="fs-2">@(udalost?.max + udalost?.MaxNahradnik - udalost?.pocet)</b></p>
+                    }
                 </div>
             </div>
         </div>
         <div class="btn-group" role="group">
-            <a class="btn btn-outline-info" style="display:@(showButton ? "block" : "none")" href="@($"/prihlaseni/{udalost.RowKey}")">
+            <a class="btn btn-outline-info" style="display:@(udalost.Prihlaseny ? "none" : "block")" href="@($"/prihlaseni/{udalost.RowKey}")">
                 Prihlaseni
             </a>
             <div class="alert @(udalost.Prihlaseny ? "alert-info" : "alert-primary")" role="alert"
@@ -42,7 +46,7 @@
 
     [Parameter]
     public bool Otvorene { get; set; }
-    private bool showButton { get => Otvorene && (udalost.pocet < udalost.max) && !udalost.Prihlaseny; }
+    private bool showButton { get => Otvorene && (udalost.pocet < udalost.max + udalost.MaxNahradnik) && !udalost.Prihlaseny; }
     private Registracia registracia = new Registracia();
     private async Task ShowPrihlasDialog(Udalost udalost)
     {
@@ -53,9 +57,12 @@
             Datum = DateTime.Now,
             DoCakarne = udalost.pocet >= udalost.max
         };
-        int maxPocet = registracia.DoCakarne ? 10 : udalost.max - udalost.pocet;
-        string nazov = registracia.DoCakarne ? "do čakárne: " : ": ";
-
+        int maxPocet = registracia.DoCakarne ? udalost.max + udalost.MaxNahradnik - udalost.pocet : udalost.max - udalost.pocet;
+        string nazov = registracia.DoCakarne ? "ako náhradník: " : ": ";
+        if (!udalost.RocnikRequired)
+        {
+            registracia.Rocnik = "-";
+        }
         var result = await DialogService.OpenAsync("Prihlásenie " + nazov + udalost.Nazov, ds =>
     @<div class="">
         <EditForm Model="registracia" OnValidSubmit="() => { HandleValidSubmit(); ds.Close(true); }">
@@ -69,8 +76,11 @@
                 <InputText id="email" @bind-Value="registracia.Email" class="form-control" />
                 <label for="pocet">Počet miest</label>
                 <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control" max="@maxPocet" min="1" disabled="disabled" />
-                <label for="rocnik">Aktuálny ročník ZŠ</label>
+                @if(udalost.RocnikRequired)
+                {
+                <label for="rocnik" >Aktuálny ročník ZŠ</label>
                 <InputText id="rocnik" @bind-Value="registracia.Rocnik" class="form-control" />
+                }
             </div>
             <div class="card-body text-right">
                 <button type="button" class="btn btn-warning" @onclick="() => ds.Close(false)">Zrušiť</button>
