@@ -58,6 +58,10 @@
             DoCakarne = udalost.pocet >= udalost.max
         };
         int maxPocet = registracia.DoCakarne ? udalost.max + udalost.MaxNahradnik - udalost.pocet : udalost.max - udalost.pocet;
+        if (udalost.PocetDisabled)
+        {
+            maxPocet = 1;
+        }
         string nazov = registracia.DoCakarne ? "ako náhradník: " : ": ";
         if (!udalost.RocnikRequired)
         {
@@ -75,7 +79,7 @@
                 <label for="email">Email</label>
                 <InputText id="email" @bind-Value="registracia.Email" class="form-control" />
                 <label for="pocet">Počet miest</label>
-                <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control" max="@maxPocet" min="1" disabled="disabled" />
+                <InputNumber id="pocet" @bind-Value="registracia.pocet" class="form-control" max="@maxPocet" min="1" @(udalost.PocetDisabled ? "disabled" : "") />
                 @if(udalost.RocnikRequired)
                 {
                 <label for="rocnik" >Aktuálny ročník ZŠ</label>
