@@ -31,7 +31,8 @@ public class UdalostService
 
     public async Task<Udalost[]> GetUdalostiAsync(string[] terminy)
     {
-        return await Task.WhenAll(terminy.Select(async item => await GetUdalost(item)).OrderBy(async u => u.Result.Order));
+        var udalosti = await Task.WhenAll(terminy.Select(async item => await GetUdalost(item)));
+        return udalosti.OrderBy(u => u.Order).ToArray();        
     }
     public async Task<Udalost[]> GetAllAsync()
     {
