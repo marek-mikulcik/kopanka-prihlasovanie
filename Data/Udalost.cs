@@ -41,4 +41,6 @@ public class Udalost : ITableEntity
     public bool RocnikRequired { get; set; } = false;
 
     public bool PocetDisabled { get; set; } = true;
+
+    public int Order { get; set; } = 0;
 }
