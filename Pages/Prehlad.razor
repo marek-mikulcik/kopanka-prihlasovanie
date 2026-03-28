@@ -16,7 +16,7 @@
 }
 else
 {
-    @foreach (var udalost in udalosti)
+    @foreach (var udalost in udalosti.OrderBy(u => u.Order))
     {
         <h2>@udalost.Nazov</h2>
         <table>
@@ -28,6 +28,7 @@ else
                     <td>@registracia.Telefon</td>
                     <td>@registracia.Email</td>
                     <td>@registracia.Rocnik</td>
+                    <td>@registracia.pocet</td>
                 </tr>
             }
         </table>
