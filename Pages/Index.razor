@@ -44,7 +44,7 @@ else
     {
         info = await InfoService.GetInfo(Tenant ?? "main");
         var udalostiRaw = await UdalostService.GetUdalostiAsync(info.Terminy.Split(","));
-        udalosti = udalostiRaw.OrderBy(l => l.RowKey).ToList<Udalost>();
+        udalosti = udalostiRaw.OrderBy(l => l.Order).ToList<Udalost>();
 
         prihlasovanieOtvorene = info.Zaciatok < teraz && teraz < info.Koniec;
         if (info.Zaciatok > DateTime.Now)
